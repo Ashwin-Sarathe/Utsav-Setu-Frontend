@@ -63,6 +63,7 @@ export const AuthProvider = ({ children }) => {
     // The Logout function we will put in our Navbar
     const logout = () => {
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
         setToken(null);
         setUser(null);
     };

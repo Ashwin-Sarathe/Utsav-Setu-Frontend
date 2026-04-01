@@ -6,11 +6,21 @@ import { toast } from 'react-toastify';
 import api from '../api/axiosConfig';
 
 const Login = () => {
-    // ... your existing state and handleSubmit logic stays exactly the same ...
     const [formData, setFormData] = useState({ username: '', password: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { login } = useAuth();
+    const { user, isAuthenticated } = useAuth();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            if (user.role === 'ADMIN') {
+                navigate('/admin/dashboard'); 
+            } else {
+                navigate('/events');
+            }
+        }
+    }, [isAuthenticated, user, navigate]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
