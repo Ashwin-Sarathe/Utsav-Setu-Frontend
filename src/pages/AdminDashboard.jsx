@@ -3,6 +3,7 @@ import { PlusCircle, Calendar, Users as UsersIcon, LayoutDashboard, Ticket, Acti
 import { toast } from 'react-toastify';
 import api from '../api/axiosConfig';
 import Navbar from '../components/Navbar';
+import { useAuth } from '../context/AuthContext';
 
 // Your existing components
 import AdminCreateEvent from '../components/admin/AdminCreateEvent';
@@ -76,6 +77,8 @@ const AdminDashboard = () => {
         }
     };
 
+    const { user } = useAuth();
+
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <Navbar />
@@ -124,16 +127,19 @@ const AdminDashboard = () => {
                                 My Events
                             </button>
 
-                            <button
-                                onClick={() => setActiveTab('manage-users')}
-                                className={`w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-colors ${activeTab === 'manage-users'
-                                    ? 'bg-indigo-50 text-indigo-700'
-                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                                    }`}
-                            >
-                                <UsersIcon className={`w-5 h-5 mr-3 ${activeTab === 'manage-users' ? 'text-indigo-600' : 'text-gray-400'}`} />
-                                Manage Users
-                            </button>
+                            {user?.username === 'admin' && (
+                                <button
+                                    onClick={() => setActiveTab('manage-users')}
+                                    className={`w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-colors ${activeTab === 'manage-users'
+                                        ? 'bg-indigo-50 text-indigo-700'
+                                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                        }`}
+                                >
+                                    <UsersIcon className={`w-5 h-5 mr-3 ${activeTab === 'manage-users' ? 'text-indigo-600' : 'text-gray-400'}`} />
+                                    Manage Users
+                                </button>
+                            )}
+
                         </nav>
                     </div>
                 </div>
@@ -285,7 +291,8 @@ const AdminDashboard = () => {
                     {/* The rest of your existing components */}
                     {activeTab === 'create' && <AdminCreateEvent />}
                     {activeTab === 'manage-events' && <AdminManageEvents />}
-                    {activeTab === 'manage-users' && <AdminManageUsers />}
+                    {/* {activeTab === 'manage-users' && <AdminManageUsers />} */}
+                    {activeTab === 'manage-users' && user?.username === 'admin' && <AdminManageUsers />}
 
                 </div>
             </div>
