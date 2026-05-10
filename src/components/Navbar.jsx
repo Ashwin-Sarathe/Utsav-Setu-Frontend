@@ -2,21 +2,20 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { LogOut, User as UserIcon, Compass, Ticket, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
-import { User, Settings} from 'lucide-react'; // Make sure Settings is imported
+import { User, Settings} from 'lucide-react'; 
 import {ChevronDown, Bell } from 'lucide-react';
 import ChangePasswordModal from './ChangePasswordModal';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
 
-  //change password 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false); 
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-
+  const [hasUnread, setHasUnread] = useState(true);
 
   const navigate = useNavigate();
-  const location = useLocation(); // NEW: This tells us what page we are currently on!
+  const location = useLocation(); 
 
   const handleLogout = () => {
     logout();
@@ -101,7 +100,8 @@ const Navbar = () => {
                 title="Notifications"
               >
                 <Bell className="w-5 h-5" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-[#4338ca]"></span>
+                {hasUnread && (<span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-[#4338ca]"></span>)}
+                
               </button>
 
               {/* The Notification Dropdown Box */}
@@ -111,7 +111,7 @@ const Navbar = () => {
                   {/* Header */}
                   <div className="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                     <h3 className="text-sm font-bold text-gray-900">Notifications</h3>
-                    <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full">1 New</span>
+                    <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full">{hasUnread ? "1 New" : "0 New"}</span>
                   </div>
 
                   {/* Notification List */}
@@ -142,10 +142,14 @@ const Navbar = () => {
                   {/* Footer */}
                   <div className="p-3 border-t border-gray-100 bg-white">
                     <button
-                      onClick={() => setIsNotificationOpen(false)}
+                      onClick={() => 
+                        {
+                          setHasUnread(false);
+                          setIsNotificationOpen(false)
+                        }}
                       className="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-bold rounded-xl hover:shadow-md hover:from-indigo-500 hover:to-purple-500 transition-all active:scale-95"
                     >
-                      Mark all as read
+                      Mark as read
                     </button>
                   </div>
                 </div>
