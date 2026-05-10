@@ -8,6 +8,7 @@ import api from '../api/axiosConfig';
 
 const Login = () => {
     const [formData, setFormData] = useState({ username: '', password: '' });
+    const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { login } = useAuth();
     const { user, isAuthenticated } = useAuth();
@@ -130,12 +131,30 @@ const Login = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                             <div className="relative">
                                 <Lock className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+
                                 <input
-                                    type="password" name="password" required
-                                    value={formData.password} onChange={handleChange}
-                                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 bg-gray-50 focus:bg-white transition-colors"
+                                    type={showPassword ? "text" : "password"} // Dynamic type change
+                                    name="password"
+                                    required
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    // Note: Increased pr-12 to make room for the icon on the right
+                                    className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 bg-gray-50 focus:bg-white transition-colors"
                                     placeholder="••••••••"
                                 />
+
+                                {/* Visibility Toggle Button */}
+                                <button
+                                    type="button" // CRITICAL: Must be type="button" so it doesn't submit the form
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-3.5 text-gray-400 hover:text-indigo-600 transition-colors focus:outline-none"
+                                >
+                                    {showPassword ? (
+                                        <EyeOff className="h-5 w-5" />
+                                    ) : (
+                                        <Eye className="h-5 w-5" />
+                                    )}
+                                </button>
                             </div>
                         </div>
 
