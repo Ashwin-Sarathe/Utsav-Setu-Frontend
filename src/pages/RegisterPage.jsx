@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { User, Lock, Mail, BookOpen, UserPlus, Hash } from 'lucide-react';
+import { User, Lock, Mail, BookOpen, UserPlus, Hash, Eye, EyeOff } from 'lucide-react';
 import api from '../api/axiosConfig';
 
 const RegisterPage = () => {
@@ -16,6 +16,7 @@ const RegisterPage = () => {
     });
     const [isLoading, setIsLoading] = useState(false);
     const [passwordError, setPasswordError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
 
     const handleChange = (e) => {
@@ -204,16 +205,33 @@ const RegisterPage = () => {
                             </div>
 
                             {/* Password */}
-                            <div className="md:col-span-2">
+                            <div className="md:col-span-2 mb-4">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                                     <input
-                                        type="password" name="password" required
-                                        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 bg-gray-50 focus:bg-white transition-colors"
+                                        type={showPassword ? "text" : "password"}
+                                        name="password"
+                                        required
+                                        className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 bg-gray-50 focus:bg-white transition-colors"
                                         placeholder="••••••••"
-                                        value={formData.password} onChange={handleChange}
+                                        value={formData.password}
+                                        onChange={handleChange}
                                     />
+
+                                    {/* Toggle Button */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-3.5 text-gray-400 hover:text-indigo-600 transition-colors focus:outline-none"
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="h-5 w-5" />
+                                        ) : (
+                                            <Eye className="h-5 w-5" />
+                                        )}
+                                    </button>
+
                                     {passwordError && (
                                         <p className="text-red-500 text-xs mt-1 font-medium absolute -bottom-5 left-0">{passwordError}</p>
                                     )}

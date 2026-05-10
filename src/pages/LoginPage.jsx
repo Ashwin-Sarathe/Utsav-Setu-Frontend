@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, LogIn, User } from 'lucide-react';
+import { Mail, Lock, LogIn, User, Eye, EyeOff} from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../api/axiosConfig';
 
