@@ -101,7 +101,7 @@ const AdminCreateEvent = () => {
                                     className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 appearance-none bg-white cursor-pointer relative z-0"
                                 >
                                     <option value="LIVE">🟢 Live (Open)</option>
-                                    <option value="CLOSED">🛑 Closed</option>
+                                    {/* <option value="CLOSED">🛑 Closed</option> */}
                                     <option value="UPCOMING">⏳ Upcoming</option>
                                 </select>
 
