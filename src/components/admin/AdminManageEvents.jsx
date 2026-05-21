@@ -42,10 +42,12 @@ const AdminManageEvents = () => {
     };
 
     const handleDelete = async (eventId) => {
-        if (!window.confirm("Are you absolutely sure you want to delete this event? This cannot be undone.")) return;
+        if (!window.confirm("Are you sure you want to delete this event? It will be removed from the public feed.")) return;
         try {
             await api.delete(`/events/delete-event-by-id/${eventId}`);
             toast.success('Event deleted successfully');
+
+            // Remove the event from the local state to update the UI instantly
             setMyEvents(myEvents.filter(event => event.id !== eventId));
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to delete event.');
