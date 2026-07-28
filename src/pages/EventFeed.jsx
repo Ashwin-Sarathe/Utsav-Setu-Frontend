@@ -5,6 +5,7 @@ import api from '../api/axiosConfig';
 import Navbar from '../components/Navbar';
 import RegistrationSuccessModal from '../components/RegistrationSuccessModal';
 import EventSkeleton from '../components/EventSkeleton';
+import EventGallery from '../components/EventGallery';
 
 
 const EventFeed = () => {
@@ -193,6 +194,10 @@ const EventFeed = () => {
                                             }`}>
                                             {current} / {max} Filled
                                         </span>
+                                    </div>
+
+                                    <div className="mb-5">
+                                        <EventGallery images={event.imageUrls} />
                                     </div>
 
                                     <h3 className={`text-2xl font-bold mb-3 line-clamp-2 ${isPast ? 'text-gray-500' : 'text-gray-900'}`}>

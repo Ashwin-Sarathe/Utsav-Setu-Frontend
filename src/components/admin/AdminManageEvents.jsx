@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { Calendar, Users, Edit, Trash2, X, MapPin, Type, Clock, FileText, Save } from 'lucide-react';
+import { Calendar, Users, Edit, Trash2, X, MapPin, Type, Clock, FileText, Save, Image as ImageIcon } from 'lucide-react';
 import api from '../../api/axiosConfig';
 import { useAuth } from '../../context/AuthContext';
+import axios from 'axios';
+
 
 const AdminManageEvents = () => {
     const { user } = useAuth();
@@ -15,13 +17,59 @@ const AdminManageEvents = () => {
     const [guests, setGuests] = useState([]);
     const [guestsLoading, setGuestsLoading] = useState(false);
 
-    // Edit Modal States (NEW)
+    // Edit Modal States
     const [showEditModal, setShowEditModal] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [uploadStatus, setUploadStatus] = useState(''); // Tracks Cloudinary progress
+    const [newImageFiles, setNewImageFiles] = useState([]); // Tracks newly added files
+
     const [editFormData, setEditFormData] = useState({
         id: '', title: '', description: '', eventDate: '', eventTime: '', venue: '', maxParticipants: '',
-        status: 'LIVE' 
+        status: 'LIVE', imageUrls: []
     });
+
+    const handleEditClick = (event) => {
+        setEditFormData({
+            id: event.id,
+            title: event.title,
+            description: event.description,
+            eventDate: event.eventDate,
+            eventTime: event.eventTime,
+            venue: event.venue,
+            maxParticipants: event.maxParticipants,
+            status: event.status || 'LIVE',
+            // Filter out the placeholder if it exists so it doesn't clutter the edit view
+            imageUrls: (event.imageUrls || []).filter(url => !url.includes('placehold.co'))
+        });
+        setNewImageFiles([]); // Reset any previously selected new files
+        setShowEditModal(true);
+    };
+
+    const handleEditChange = (e) => {
+        setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
+    };
+
+    // Image Handlers for Edit Modal
+    const handleNewImageChange = (e) => {
+        const files = Array.from(e.target.files);
+        const totalImages = editFormData.imageUrls.length + newImageFiles.length + files.length;
+        if (totalImages > 5) {
+            toast.warning("You can only have up to 5 images total.");
+            return;
+        }
+        setNewImageFiles([...newImageFiles, ...files]);
+    };
+
+    const removeExistingImage = (indexToRemove) => {
+        setEditFormData({
+            ...editFormData,
+            imageUrls: editFormData.imageUrls.filter((_, index) => index !== indexToRemove)
+        });
+    };
+
+    const removeNewImage = (indexToRemove) => {
+        setNewImageFiles(newImageFiles.filter((_, index) => index !== indexToRemove));
+    };
 
     useEffect(() => {
         fetchMyEvents();
@@ -68,29 +116,59 @@ const AdminManageEvents = () => {
         }
     };
 
-    // --- NEW EDIT FUNCTIONS ---
-    const handleEditClick = (event) => {
-        setEditFormData({
-            id: event.id,
-            title: event.title,
-            description: event.description,
-            eventDate: event.eventDate,
-            eventTime: event.eventTime,
-            venue: event.venue,
-            maxParticipants: event.maxParticipants,
-            status: event.status || 'LIVE'
-        });
-        setShowEditModal(true);
-    };
+    // // --- NEW EDIT FUNCTIONS ---
+    // const handleEditClick = (event) => {
+    //     setEditFormData({
+    //         id: event.id,
+    //         title: event.title,
+    //         description: event.description,
+    //         eventDate: event.eventDate,
+    //         eventTime: event.eventTime,
+    //         venue: event.venue,
+    //         maxParticipants: event.maxParticipants,
+    //         status: event.status || 'LIVE'
+    //     });
+    //     setShowEditModal(true);
+    // };
 
-    const handleEditChange = (e) => {
-        setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
-    };
+    // const handleEditChange = (e) => {
+    //     setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
+    // };
 
     const handleUpdateEvent = async (e) => {
         e.preventDefault();
         setIsUpdating(true);
         try {
+            let uploadedUrls = [];
+
+            // 1. Upload NEW images to Cloudinary if any are selected
+            if (newImageFiles.length > 0) {
+                setUploadStatus('Uploading new images...');
+                const uploadPromises = newImageFiles.map(async (file) => {
+                    const cloudFormData = new FormData();
+                    cloudFormData.append('file', file);
+                    cloudFormData.append('upload_preset', 'utsav_setu_preset');
+
+                    const res = await axios.post(
+                        'https://api.cloudinary.com/v1_1/djlmcgpec/image/upload',
+                        cloudFormData
+                    );
+                    return res.data.secure_url;
+                });
+                uploadedUrls = await Promise.all(uploadPromises);
+            }
+
+            setUploadStatus('Saving changes...');
+
+            // 2. Combine existing images that weren't deleted + newly uploaded images
+            let finalImageUrls = [...editFormData.imageUrls, ...uploadedUrls];
+
+            // Fallback to placeholder if they deleted everything
+            if (finalImageUrls.length === 0) {
+                finalImageUrls = ["https://placehold.co/600x400?text=No+Image+Available"];
+            }
+
+            // 3. Send to backend
             await api.put(`/events/update-event-by-id/${editFormData.id}`, {
                 title: editFormData.title,
                 description: editFormData.description,
@@ -98,16 +176,18 @@ const AdminManageEvents = () => {
                 eventTime: editFormData.eventTime,
                 venue: editFormData.venue,
                 maxParticipants: parseInt(editFormData.maxParticipants),
-                status: editFormData.status
+                status: editFormData.status,
+                imageUrls: finalImageUrls
             });
 
             toast.success('Event updated successfully!');
             setShowEditModal(false);
-            fetchMyEvents(); // Refresh the grid to show the new data!
+            fetchMyEvents();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to update event.');
         } finally {
             setIsUpdating(false);
+            setUploadStatus('');
         }
     };
 
@@ -301,6 +381,60 @@ const AdminManageEvents = () => {
                                     </div>
                                 </div>
 
+                                {/* --- NEW: Edit Image Gallery Section --- */}
+                                <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-5">
+                                    <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center">
+                                        <ImageIcon className="w-4 h-4 mr-2 text-indigo-500" />
+                                        Manage Gallery Images (Max 5)
+                                    </label>
+
+                                    {/* Display Existing Images */}
+                                    {editFormData.imageUrls.length > 0 && (
+                                        <div className="mb-4">
+                                            <p className="text-xs text-gray-500 mb-2 font-medium">Current Images:</p>
+                                            <div className="flex gap-3 overflow-x-auto pb-2">
+                                                {editFormData.imageUrls.map((url, index) => (
+                                                    <div key={`existing-${index}`} className="relative flex-shrink-0">
+                                                        <img src={url} alt="existing" className="w-20 h-20 object-cover rounded-lg border border-gray-200 shadow-sm" />
+                                                        <button type="button" onClick={() => removeExistingImage(index)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-md">
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Upload New Images */}
+                                    {(editFormData.imageUrls.length + newImageFiles.length) < 5 && (
+                                        <div className="flex items-center justify-center w-full mt-2">
+                                            <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                                                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                                    <p className="text-sm text-gray-500"><span className="font-semibold">Click to add more images</span></p>
+                                                </div>
+                                                <input type="file" className="hidden" multiple accept="image/*" onChange={handleNewImageChange} />
+                                            </label>
+                                        </div>
+                                    )}
+
+                                    {/* Display Newly Selected Images */}
+                                    {newImageFiles.length > 0 && (
+                                        <div className="mt-4">
+                                            <p className="text-xs text-indigo-500 mb-2 font-medium">New Images to Upload:</p>
+                                            <div className="flex gap-3 overflow-x-auto pb-2">
+                                                {newImageFiles.map((file, index) => (
+                                                    <div key={`new-${index}`} className="relative flex-shrink-0">
+                                                        <img src={URL.createObjectURL(file)} alt="new preview" className="w-20 h-20 object-cover rounded-lg border border-indigo-200 shadow-sm" />
+                                                        <button type="button" onClick={() => removeNewImage(index)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-md">
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                                     <div className="relative">
@@ -317,7 +451,7 @@ const AdminManageEvents = () => {
                                 Cancel
                             </button>
                             <button type="submit" form="editForm" disabled={isUpdating} className="px-6 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center disabled:opacity-70">
-                                {isUpdating ? 'Saving...' : <><Save className="w-4 h-4 mr-2" /> Save Changes</>}
+                                {isUpdating ? (uploadStatus || 'Saving...') : <><Save className="w-4 h-4 mr-2" /> Save Changes</>}
                             </button>
                         </div>
 
