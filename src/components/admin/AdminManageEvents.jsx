@@ -195,6 +195,12 @@ const AdminManageEvents = () => {
         return <div className="p-10 text-center animate-pulse text-indigo-600 font-medium">Loading your events...</div>;
     }
 
+    // Calculate TOMORROW'S date in YYYY-MM-DD format to prevent past/today selection during edits
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const minEditDate = tomorrow.toISOString().split('T')[0];
+
+
     return (
         <div className="space-y-6 relative">
 
@@ -346,7 +352,15 @@ const AdminManageEvents = () => {
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
                                         <div className="relative">
                                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Calendar className="h-4 w-4 text-gray-400" /></div>
-                                            <input type="date" name="eventDate" required className="block w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" value={editFormData.eventDate} onChange={handleEditChange} />
+                                            <input
+                                                type="date"
+                                                name="eventDate"
+                                                min={minEditDate}
+                                                required
+                                                className="block w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                                                value={editFormData.eventDate}
+                                                onChange={handleEditChange}
+                                            />
                                         </div>
                                     </div>
                                     <div>

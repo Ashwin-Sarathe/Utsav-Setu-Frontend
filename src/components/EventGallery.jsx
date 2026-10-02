@@ -1,10 +1,36 @@
-import { useState } from 'react';
-import { Image as ImageIcon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Image as ImageIcon, Calendar } from 'lucide-react';
 
 const EventGallery = ({ images }) => {
-    const [activeImage, setActiveImage] = useState(images?.[0]);
+    // Check if we have real images or just the backend placeholder
+    const hasRealImages = images && images.length > 0 && !images[0].includes('placehold.co');
 
-    if (!images || images.length === 0) return null;
+    // Default to the first real image if it exists
+    const [activeImage, setActiveImage] = useState(hasRealImages ? images[0] : null);
+
+    // Update active image if the props change
+    useEffect(() => {
+        if (hasRealImages) {
+            setActiveImage(images[0]);
+        }
+    }, [images, hasRealImages]);
+
+    // SLEEK FALLBACK UI: Minimalist, premium empty state
+    if (!hasRealImages) {
+        return (
+            <div className="w-full h-64 sm:h-80 rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 flex flex-col items-center justify-center relative group transition-all">
+                {/* Subtle minimalist dot-grid background */}
+                <div className="absolute inset-0 opacity-[0.04] bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px]"></div>
+
+                <div className="relative z-10 flex flex-col items-center text-gray-400 group-hover:text-indigo-400 transition-colors duration-500">
+                    <div className="w-16 h-16 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center mb-4 transition-transform duration-500 group-hover:scale-105 group-hover:shadow-md">
+                        <ImageIcon className="w-7 h-7 text-gray-400 group-hover:text-indigo-500 transition-colors duration-500" strokeWidth={1.5} />
+                    </div>
+                    <p className="text-sm font-semibold text-gray-500 tracking-wide uppercase">No Gallery Images</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-3">
